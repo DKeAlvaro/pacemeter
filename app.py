@@ -5,7 +5,7 @@ import string
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-socketio = SocketIO(app, async_mode='threading')
+socketio = SocketIO(app, async_mode='eventlet')
 
 # In-memory storage for rooms and their state
 # rooms = {
@@ -239,5 +239,5 @@ def on_disconnect():
         emit('viewer_left', {'sid': disconnected_sid, 'viewer_count': len(rooms[room_to_update]['viewers'])}, to=room_to_update)
 
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000) 
+# if __name__ == '__main__':
+#     socketio.run(app, host='0.0.0.0', port=5000) 
