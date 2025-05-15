@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaceMeter - Keep Your Presentation in Perfect Rhythm</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="index-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="PaceMeter Logo" class="logo">
+        </div>
+
+        <div class="title-container">
+            <h1 class="main-title">PaceMeter</h1>
+            <p class="subtitle">Keep your presentation in perfect rhythm</p>
+        </div>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <div class="main-actions">
+            <form method="POST" action="{{ url_for('index') }}" class="create-form">
+                <input type="hidden" name="role" value="host">
+                <button type="submit" class="btn btn-primary btn-lg">Create Room</button>
+            </form>
+
+            <form class="join-button-form">
+                <button type="button" id="show-join" class="btn btn-secondary btn-lg">Join Room</button>
+            </form>
+            
+            <form method="POST" action="{{ url_for('index') }}" class="join-form">
+                <input type="hidden" name="role" value="viewer">
+                <input type="text" name="room_id_input" placeholder="Enter Room ID" class="form-control room-id-input" required maxlength="6">
+                <button type="submit" class="btn btn-secondary btn-lg">Join</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('show-join').addEventListener('click', function() {
+            document.querySelector('.join-button-form').style.display = 'none';
+            document.querySelector('.join-form').classList.add('visible');
+        });
+    </script>
+</body>
+</html> 

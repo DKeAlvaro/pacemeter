@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewer Feedback - PaceMeter</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="viewer-container">
+        <div class="room-number">Room: {{ room_id }}</div>
+        
+        <div class="pace-buttons">
+            <button id="too-fast" class="btn-pace too-fast">
+                <img src="{{ url_for('static', filename='images/fast.svg') }}" alt="Rabbit icon" class="pace-icon">
+                Too Fast
+            </button>
+            <button id="right-pace" class="btn-pace right-pace active">
+                <img src="{{ url_for('static', filename='images/right.svg') }}" alt="Thumbs up icon" class="pace-icon">
+                Right Pace
+            </button>
+            <button id="too-slow" class="btn-pace too-slow">
+                <img src="{{ url_for('static', filename='images/slow.svg') }}" alt="Turtle icon" class="pace-icon">
+                Too Slow
+            </button>
+        </div>
+        
+        <div id="viewer-message" class="viewer-message" style="display: none;">
+            <p id="message-text"></p>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="leave-room-link">Leave Room</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const roomId = "{{ room_id }}";
+            const socket = io();
+            let currentSelection = 'Right Pace';
+
+            const buttons = {
+                'Too Fast': document.getElementById('too-fast'),
+                'Right Pace': document.getElementById('right-pace'),
+                'Too Slow': document.getElementById('too-slow')
+            };
+
+            function setActiveButton(pace) {
+                Object.values(buttons).forEach(button => {
+                    button.classList.remove('active');
+                });
+                if (buttons[pace]) {
+                    buttons[pace].classList.add('active');
+                }
+                currentSelection = pace;
+            }
+
+            socket.on('connect', () => {
+                console.log('Viewer connected to SocketIO');
+                socket.emit('join', { room_id: roomId });
+                setActiveButton('Right Pace');
+            });
+
+            Object.entries(buttons).forEach(([pace, button]) => {
+                button.addEventListener('click', () => {
+                    if (currentSelection !== pace) {
+                        console.log(`Sending pace: ${pace}`);
+                        socket.emit('send_pace', { room_id: roomId, pace: pace });
+                        setActiveButton(pace);
+                    }
+                });
+            });
+
+            socket.on('host_disconnected', (data) => {
+                console.log('Host disconnected:', data.message);
+                window.location.href = "{{ url_for('index') }}";
+            });
+
+            socket.on('room_error', (data) => {
+                console.error('Room error:', data.error);
+                window.location.href = "{{ url_for('index') }}";
+            });
+        });
+    </script>
+</body>
+</html> 

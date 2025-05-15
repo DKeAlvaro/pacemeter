@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background Circle -->
+    <circle cx="100" cy="100" r="90" fill="#F8F9FE" stroke="#6C63FF" stroke-width="4"/>
+    
+    <!-- Speedometer Arc -->
+    <path d="M 100 100 L 155 60 A 65 65 0 0 0 45 60 L 100 100" fill="#6C63FF" opacity="0.1"/>
+    
+    <!-- Center Point -->
+    <circle cx="100" cy="100" r="8" fill="#6C63FF"/>
+    
+    <!-- Speed Markers -->
+    <circle cx="155" cy="60" r="6" fill="#FF6B6B"/> <!-- Fast -->
+    <circle cx="100" cy="35" r="6" fill="#4ECB71"/> <!-- Just Right -->
+    <circle cx="45" cy="60" r="6" fill="#FFB347"/> <!-- Slow -->
+    
+    <!-- Needle -->
+    <line x1="100" y1="100" x2="100" y2="35" stroke="#6C63FF" stroke-width="4" stroke-linecap="round">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="0 100 100"
+            to="360 100 100"
+            dur="2s"
+            repeatCount="1"/>
+    </line>
+    
+    <!-- Text -->
+    <path d="M 60 130 L 140 130" stroke="#6C63FF" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 70 145 L 130 145" stroke="#6C63FF" stroke-width="4" stroke-linecap="round"/>
+</svg> 

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Dashboard - PaceMeter</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="host-container">
+        <div class="host-header">
+            <span class="header-item">Room ID:</span>
+            <span class="header-item room-id">{{ room_id }}</span>
+            <span class="header-item">(Viewers: <span id="viewer-count">0</span>)</span>
+        </div>
+
+        <div class="chart-wrapper">
+            <canvas id="paceChart"></canvas>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="leave-room-link">Leave Room</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const roomId = "{{ room_id }}";
+            const socket = io();
+            let paceChart = null;
+
+            // Request notification permission on load
+            if (("Notification" in window) && Notification.permission !== "denied" && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+
+            socket.on('connect', () => {
+                console.log('Host connected to SocketIO');
+                socket.emit('join', { room_id: roomId });
+            });
+
+            socket.on('pace_update', (data) => {
+                console.log('Pace update received by host:', data);
+                const viewers = data.total_viewers;
+                document.getElementById('viewer-count').textContent = viewers;
+
+                const counts = data.counts;
+                const tooFast = counts['Too Fast'] || 0;
+                const tooSlow = counts['Too Slow'] || 0;
+                const rightPace = counts['Right Pace'] || 0;
+
+                updateChart(tooFast, rightPace, tooSlow);
+            });
+
+            socket.on('host_alert', (data) => {
+                console.log("Host alert for notification: ", data.message);
+                if (!("Notification" in window)) {
+                    console.log("This browser does not support desktop notification");
+                } else if (Notification.permission === "granted") {
+                    new Notification("PaceMeter Alert!", { 
+                        body: data.message, 
+                        icon: "{{ url_for('static', filename='images/logo.svg') }}" 
+                    });
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then((permission) => {
+                        if (permission === "granted") {
+                            new Notification("PaceMeter Alert!", { 
+                                body: data.message, 
+                                icon: "{{ url_for('static', filename='images/logo.svg') }}" 
+                            });
+                        }
+                    });
+                }
+            });
+
+            function updateChart(fast, right, slow) {
+                const ctx = document.getElementById('paceChart').getContext('2d');
+                const data = {
+                    labels: ['Too Fast', 'Right Pace', 'Too Slow'],
+                    datasets: [{
+                        label: 'Pace Feedback',
+                        data: [fast, right, slow],
+                        backgroundColor: [
+                            '#FF6B6B',  // Red for Too Fast
+                            '#4ECB71',  // Green for Right Pace
+                            '#FFB347'   // Orange for Too Slow
+                        ],
+                        borderColor: [
+                            '#FF5252',
+                            '#43A047',
+                            '#FB8C00'
+                        ],
+                        borderWidth: 1
+                    }]
+                };
+
+                if (paceChart) {
+                    paceChart.data.datasets[0].data = [fast, right, slow];
+                    paceChart.update();
+                } else {
+                    paceChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: {
+                                            family: 'Inter',
+                                            size: 16
+                                        },
+                                        padding: 20
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 500
+                            },
+                            cutout: '70%'
+                        }
+                    });
+                }
+            }
+
+            // Initialize chart with 0 values
+            updateChart(0,0,0);
+        });
+    </script>
+</body>
+</html> 
